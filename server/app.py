@@ -47,6 +47,36 @@ class ShowArticle(Resource):
             return make_response(article_json, 200)
 
         return {'message': 'Maximum pageview limit reached'}, 401
+class Login(Resource):
+    def post(self):
+        username = request.json.get('username')
+        if username:
+            user = User.query.filter_by(username=username).first()
+            if user:
+                session['user_id'] = user.id
+                return user.to_dict(), 200
+        return 'Unauthorized', 401
+
+class Logout(Resource):
+    def delete(self):
+        session.pop('user_id', None)
+        return '', 204
+
+class CheckSession(Resource):
+    def get(self):
+        user = User.query.filter(User.id == session.get('user_id')).first()
+        if user:
+            return user.to_dict()
+        else:
+            return {}, 401 
+
+
+        
+
+
+api.add_resource(Login, '/login')
+api.add_resource(Logout, '/logout')
+api.add_resource(CheckSession, '/check_session')
 
 api.add_resource(ClearSession, '/clear')
 api.add_resource(IndexArticle, '/articles')
